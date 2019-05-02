@@ -15,6 +15,8 @@ def makein(a,x,y):
     
 bim = makein('res/board.jpeg',800,800)
 sel = makein('res/selected.png',100,100)
+mark = makein('res/mark.png',100,100)
+kill = makein('res/kill.png',100,100)
 
 wpawn = makein('res/wpawn.png',100,100)
 wknight = makein('res/wknight.png',100,100)
@@ -30,6 +32,7 @@ bqueen = makein('res/bqueen.png',100,100)
 bking = makein('res/bking.png',100,100)
 
 piece=""
+p_x,p_y = 0,0
 
 
 def init():
@@ -122,17 +125,61 @@ def set_text(string,_font,_size,x,y,color,textRect,fill):
     screen.blit(text,textRect)
 
 
+def killable(x,y):
+    
+    if(cboard[y][x] != "1"):
+        if(cboard[y][x][:1] != piece[:1]):
+            return [x,y,kill]
+        else:
+            return ["x"]
+    else:
+        return ["x"]
+
+
+def path(x,y):
+
+    if(cboard[y][x] == "1"):
+        return [x,y,mark]
+    else:
+        return ["x"]
+
+
+def capacity(piece,x,y):
+    
+    lim=0
+
+    if(piece[1:]=="pawn"):
+        if(piece[:1]=="w"):
+            lim=1
+        else:
+            lim=-1
+        q=path(x,min((y+lim,7)))
+        if(q[0]!="x"):
+            screen.blit(q[2],(q[0]*100+300,q[1]*100+100))
+        q=killable(min(x+lim,7),min((y+lim,7)))
+        if(q[0]!="x"):
+            screen.blit(q[2],(q[0]*100+300,q[1]*100+100))
+        q=killable(max(x-lim,0),min((y+lim,7)))
+        if(q[0]!="x"):
+            screen.blit(q[2],(q[0]*100+300,q[1]*100+100))
+        
+
+
 def clicked(x,y):
 
-    global piece,cboard
+    global piece,cboard,p_x,p_y
 
     board(0)      
     screen.blit(sel,(x*100+300,y*100+100))
-    pygame.display.update()
+    
 
     piece = cboard[y][x]
     if(piece != "1"):
         cboard[y][x]="1"
+        capacity(piece,x,y)
+
+    pygame.display.update()
+    p_x,p_y = x,y
 
 
 
@@ -141,7 +188,11 @@ def moved(x,y):
     global cboard
 
     if(piece != "1"):
-        cboard[y][x] = piece
+        if(piece[:1] != cboard[y][x][:1]):
+            cboard[y][x] = piece
+        else:
+            cboard[p_y][p_x]=piece
+
 
     board(0)      
     pygame.display.update()
@@ -179,17 +230,21 @@ while(alive):
             x=x//100 - 3
             y=y//100 - 1
 
-            if(hover == 1):
+            if(hover == 1):                
                 
-                clicked(x,y)
-                hover=0    
-                print(cboard[x][y])
-
+                if(x > 7 or x<0 or y>7 or y<0):
+                    hover=1  
+                else:
+                    clicked(x,y)
+                    hover=0  
     
             else:
-            
-                moved(x,y)
-                hover=1     
+                
+                if(x > 7 or x<0 or y>7 or y<0):
+                    hover=0
+                else:
+                    moved(x,y)
+                    hover=1     
 
      
 
