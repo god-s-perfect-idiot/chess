@@ -2,6 +2,7 @@ import pygame
 
 
 cboard=[]
+radius=[]
 
 w,h = (1400,950)
 
@@ -33,6 +34,8 @@ bking = makein('res/bking.png',100,100)
 
 piece=""
 p_x,p_y = 0,0
+
+turn = 0
 
 
 def init():
@@ -146,23 +149,28 @@ def path(x,y):
 
 def capacity(piece,x,y):
     
+    global radius
+
+    radius = []
+
     lim=0
 
-    if(piece[1:]=="pawn"):
-        if(piece[:1]=="w"):
-            lim=1
-        else:
-            lim=-1
+    if(piece=="wpawn"):
+        lim=1
         q=path(x,min((y+lim,7)))
         if(q[0]!="x"):
             screen.blit(q[2],(q[0]*100+300,q[1]*100+100))
+            radius.append([q[0],q[1]])
         q=killable(min(x+lim,7),min((y+lim,7)))
         if(q[0]!="x"):
             screen.blit(q[2],(q[0]*100+300,q[1]*100+100))
+            radius.append([q[0],q[1]])
         q=killable(max(x-lim,0),min((y+lim,7)))
         if(q[0]!="x"):
             screen.blit(q[2],(q[0]*100+300,q[1]*100+100))
-        
+            radius.append([q[0],q[1]])    
+    elif(piece=="bpawn"):  
+        pass 
 
 
 def clicked(x,y):
@@ -185,12 +193,15 @@ def clicked(x,y):
 
 def moved(x,y):
 
-    global cboard
+    global cboard,turn,hover
 
     if(piece != "1"):
         if(piece[:1] != cboard[y][x][:1]):
             cboard[y][x] = piece
+            turn+=1
+            
         else:
+            hover=0
             cboard[p_y][p_x]=piece
 
 
@@ -243,8 +254,13 @@ while(alive):
                 if(x > 7 or x<0 or y>7 or y<0):
                     hover=0
                 else:
-                    moved(x,y)
-                    hover=1     
+                    if([x,y] in radius):
+                        moved(x,y)
+                        hover=1  
+                        radius=[]   
+                    else:
+                        moved(p_x,p_y)
+                        hover=1
 
      
 
